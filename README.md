@@ -115,3 +115,4 @@ Key settings can be adjusted at the top of `face_detection.py`:
 ## License
 
 MIT License. Open-source for academic, educational, and commercial kiosks.
+

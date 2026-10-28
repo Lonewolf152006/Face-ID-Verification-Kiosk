@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore")
 import cv2
 import numpy as np
 import face_recognition
+import pytesseract
 
 # -------------------------------------------------------------------
 # 0. Tunables - calibrate these on YOUR cards and people
@@ -98,23 +99,14 @@ except Exception:
 
 
 # -------------------------------------------------------------------
-# 3. Advanced Multi-Enhancement OCR Engine
+# 3. Pytesseract OCR Engine (Optimized for 32-bit Raspberry Pi OS)
 # -------------------------------------------------------------------
-rapid_ocr = None
-try:
-    from rapidocr_onnxruntime import RapidOCR
-    rapid_ocr = RapidOCR()
-except Exception:
-    pass
-
 def extract_id_info(frame, roi_box=None):
     """
     Scans the camera frame / cropped card ROI using multi-scale and
-    contrast-enhanced passes to extract Name, Branch, and Roll Number.
+    contrast-enhanced passes with pytesseract to accurately extract
+    Name, Branch, and Roll Number.
     """
-    if rapid_ocr is None:
-        return "Not Found", "Not Found", "Not Found", []
-
     # If an ROI is specified, crop to it first with a slight padding
     h, w = frame.shape[:2]
     if roi_box is not None:
@@ -136,17 +128,16 @@ def extract_id_info(frame, roi_box=None):
     attempts.append(cv2.resize(en_bgr, (0, 0), fx=1.3, fy=1.3, interpolation=cv2.INTER_CUBIC))
 
     best_lines = []
-    highest_valid_tokens = 0
+    highest_valid_lines = 0
 
     for img in attempts:
         try:
-            res, _ = rapid_ocr(img)
-            if res:
-                # Filter tokens by confidence > 0.55 and length > 1
-                lines = [r[1].strip() for r in res if float(r[2]) > 0.55 and len(r[1].strip()) > 1]
-                if len(lines) > highest_valid_tokens:
-                    highest_valid_tokens = len(lines)
-                    best_lines = lines
+            extracted_text = pytesseract.image_to_string(img)
+            lines = [line.strip() for line in extracted_text.split('\n') if line.strip()]
+            valid_alphanumeric_count = sum(1 for line in lines if any(ch.isalnum() for ch in line))
+            if valid_alphanumeric_count > highest_valid_lines:
+                highest_valid_lines = valid_alphanumeric_count
+                best_lines = lines
         except Exception:
             pass
 
