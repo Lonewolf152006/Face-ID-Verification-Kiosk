@@ -1,16 +1,18 @@
 # Face & ID Card Verification Kiosk
 
-A real-time AI-powered kiosk and biometric access control system combining **RapidOCR** text extraction and **dlib / face_recognition** facial verification.
+A real-time AI-powered kiosk and biometric access control system combining **pytesseract** text extraction and **dlib / face_recognition** facial verification.
 
-Engineered for college / institutional ID cards (e.g. Vidyalankar Institute of Technology - VIT format) and physical access control (Raspberry Pi GPIO Pin 17 or Windows simulation).
+Engineered for 32-bit and 64-bit Raspberry Pi OS (as well as Windows), supporting institutional ID cards (e.g. Vidyalankar Institute of Technology - VIT format) and physical access control (Raspberry Pi GPIO Pin 17 or Windows simulation).
 
 ---
 
 ## Features
 
 - **Two-Step Verification Pipeline**:
-  - **STEP 1 (Card Scan)**: User aligns physical ID card inside on-screen target box and presses `SPACE`. The system runs RapidOCR to parse Student Name, Branch, and Roll Number, and isolates the printed ID photo chip.
+  - **STEP 1 (Card Scan)**: User aligns physical ID card inside on-screen target box and presses `SPACE`. The system runs pytesseract to parse Student Name, Branch, and Roll Number, and isolates the printed ID photo chip.
   - **STEP 2 (Biometric Match)**: User looks into the camera. Live face features are matched against the extracted ID photo encoding in real-time.
+- **32-Bit & 64-Bit Raspberry Pi Compatibility**:
+  - Uses native Tesseract OCR via `pytesseract`, completely removing dependencies on ONNX runtime wheels that do not support 32-bit ARM (armv7l).
 - **Robust Multi-Method Card Face Extractor**:
   - **Card ROI Isolation**: Prevents accidental detection of the person's face in the background when holding up the card.
   - **Multi-Scale Search**: Scales up small passport photos (1.5x) so dlib HOG reliably detects them.
@@ -47,7 +49,7 @@ Engineered for college / institutional ID cards (e.g. Vidyalankar Institute of T
               +----------------------+----------------------+
               |                                             |
     +---------v----------+                       +----------v---------+
-    | Multi-Pass RapidOCR|                       | Card Photo Extract |
+    | Multi-Pass pytesseract|                       | Card Photo Extract |
     | Name, Roll, Branch |                       | HOG + Haar Cascade |
     +---------+----------+                       +----------+---------+
               |                                             |
@@ -75,7 +77,13 @@ Engineered for college / institutional ID cards (e.g. Vidyalankar Institute of T
 - Webcam (built-in or USB)
 - Optional: Raspberry Pi with solenoid door lock / relay connected to GPIO 17
 
-### Install Dependencies
+### Install System Dependencies (Raspberry Pi / Debian)
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr libtesseract-dev -y
+```
+
+### Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
